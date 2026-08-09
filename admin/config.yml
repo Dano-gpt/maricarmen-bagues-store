@@ -1,0 +1,161 @@
+# ============================================================================
+# Panel de administración (Decap CMS) — Bagués by Maricarmen Vázquez
+# Guarda los cambios directo en el repositorio de GitHub (rama main) y el sitio
+# se vuelve a publicar solo en GitHub Pages.
+#
+# IMPORTANTE: reemplazar "base_url" por la URL de tu relay OAuth (ver ADMIN-SETUP.md).
+# ============================================================================
+
+backend:
+  name: github
+  repo: Dano-gpt/maricarmen-bagues-store
+  branch: main
+  base_url: https://REEMPLAZAR-CON-TU-RELAY-OAUTH   # <-- ver ADMIN-SETUP.md
+  auth_endpoint: /auth
+
+# Idioma del panel
+locale: es
+
+# Carpeta donde se guardan las imágenes que subís desde el panel
+media_folder: "assets/uploads"
+public_folder: "assets/uploads"
+
+# Mensaje de commit al guardar
+backend_commit_messages:
+  create: "CMS: crear {{collection}} “{{slug}}”"
+  update: "CMS: actualizar {{collection}} “{{slug}}”"
+  uploadMedia: "CMS: subir imagen “{{path}}”"
+  deleteMedia: "CMS: borrar imagen “{{path}}”"
+
+collections:
+  # ---------------------------------------------------------------- CONFIG ---
+  - name: configuracion
+    label: "Configuración general"
+    files:
+      - name: settings
+        label: "Datos, comercio, legal y contacto"
+        file: "content/settings.json"
+        fields:
+          - label: "Revendedora"
+            name: reseller
+            widget: object
+            fields:
+              - { label: "Nombre", name: nombre, widget: string }
+              - { label: "Rol", name: rol, widget: string }
+              - { label: "WhatsApp (internacional, sin + ni espacios)", name: whatsapp, widget: string }
+              - { label: "Instagram (usuario)", name: instagram, widget: string, required: false }
+              - { label: "Email", name: email, widget: string, required: false }
+              - { label: "Zona de cobertura", name: zona, widget: string, required: false }
+              - { label: "LinkedIn (URL)", name: linkedin, widget: string, required: false }
+              - { label: "Foto de Maricarmen", name: foto, widget: image, required: false }
+              - { label: "Bio corta", name: bioCorta, widget: text }
+              - label: "Bio larga (un párrafo por ítem)"
+                name: bioLarga
+                widget: list
+                field: { label: "Párrafo", name: parrafo, widget: text }
+          - label: "Comercio"
+            name: commerce
+            widget: object
+            fields:
+              - { label: "Envío gratis desde ($)", name: envioGratisDesde, widget: number, value_type: int }
+              - { label: "Costo de envío ($)", name: costoEnvio, widget: number, value_type: int }
+              - { label: "Moneda (símbolo)", name: moneda, widget: string, default: "$" }
+              - label: "Cupones"
+                name: cupones
+                widget: list
+                fields:
+                  - { label: "Código", name: codigo, widget: string }
+                  - { label: "Descuento (0.10 = 10%)", name: descuento, widget: number, value_type: float }
+              - label: "Promos (barra superior)"
+                name: promos
+                widget: list
+                field: { label: "Promo", name: promo, widget: string }
+          - label: "Legal"
+            name: legal
+            widget: object
+            fields:
+              - { label: "Mostrar aviso legal", name: mostrarDisclaimer, widget: boolean, default: true }
+              - { label: "Texto del aviso", name: disclaimer, widget: text }
+          - label: "Formularios"
+            name: forms
+            widget: object
+            fields:
+              - { label: "Modo de entrega", name: modo, widget: select, options: ["whatsapp", "email", "endpoint"], default: "whatsapp" }
+              - { label: "Endpoint (si el modo es endpoint)", name: endpoint, widget: string, required: false }
+          - label: "Analytics (opcional)"
+            name: analytics
+            widget: object
+            fields:
+              - { label: "Google Analytics ID (G-...)", name: gaMeasurementId, widget: string, required: false }
+              - { label: "Meta Pixel ID", name: metaPixelId, widget: string, required: false }
+
+  # ------------------------------------------------------------------ HOME ---
+  - name: inicio
+    label: "Página de inicio"
+    files:
+      - name: home
+        label: "Hero y testimonios"
+        file: "content/home.json"
+        fields:
+          - label: "Slides del hero"
+            name: hero
+            widget: list
+            fields:
+              - { label: "Imagen", name: image, widget: image }
+              - { label: "Título", name: title, widget: string }
+              - { label: "Subtítulo", name: subtitle, widget: string }
+              - { label: "Link (ej: #/producto/brescia)", name: link, widget: string }
+          - label: "Testimonios"
+            name: testimonials
+            widget: list
+            fields:
+              - { label: "Foto", name: img, widget: image }
+              - { label: "Texto", name: text, widget: text }
+              - { label: "Autor", name: author, widget: string }
+
+  # -------------------------------------------------------------- CATALOGO ---
+  - name: catalogo
+    label: "Catálogo"
+    files:
+      - name: catalog
+        label: "Categorías y productos"
+        file: "content/catalog.json"
+        fields:
+          - label: "Categorías"
+            name: categories
+            widget: list
+            fields:
+              - { label: "Slug (id de URL)", name: slug, widget: string }
+              - { label: "Nombre", name: name, widget: string }
+              - { label: "Color de acento (variable CSS)", name: accent, widget: string }
+              - { label: "Color de fondo (variable CSS)", name: tint, widget: string }
+          - label: "Productos"
+            name: products
+            widget: list
+            fields:
+              - { label: "ID (único, sin espacios)", name: id, widget: string }
+              - { label: "Nombre", name: name, widget: string }
+              - { label: "Familia", name: family, widget: string }
+              - { label: "Categoría (slug)", name: category, widget: string }
+              - { label: "Género", name: genero, widget: select, options: ["Mujer", "Hombre", "Unisex"] }
+              - { label: "Precio ($)", name: price, widget: number, value_type: int }
+              - { label: "Precio anterior ($, opcional)", name: compareAt, widget: number, value_type: int, required: false }
+              - { label: "% OFF", name: percent, widget: number, value_type: int, default: 0 }
+              - { label: "Imagen", name: image, widget: image }
+              - { label: "Notas", name: notes, widget: text, required: false }
+              - { label: "Descripción", name: desc, widget: text }
+
+  # ------------------------------------------------------------------ FAQS ---
+  - name: faqs
+    label: "Preguntas frecuentes"
+    files:
+      - name: faqs
+        label: "Preguntas y respuestas"
+        file: "content/faqs.json"
+        fields:
+          - label: "Preguntas"
+            name: faqs
+            widget: list
+            fields:
+              - { label: "Pregunta", name: q, widget: string }
+              - { label: "Respuesta", name: a, widget: text }

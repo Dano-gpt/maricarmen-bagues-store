@@ -1,0 +1,34 @@
+{
+  "hero": [
+    {
+      "image": "assets/images/hero-brescia.png",
+      "title": "Brescia Crystalline",
+      "subtitle": "La nueva fragancia premium ya está disponible.",
+      "link": "#/producto/brescia"
+    },
+    {
+      "image": "assets/images/hero-avalon-atlantida.png",
+      "title": "Avalon & Atlántida",
+      "subtitle": "Colección infantil, aromas suaves para los más chicos.",
+      "link": "#/catalogo/bebes-ninos"
+    },
+    {
+      "image": "assets/images/hero-rutina-skincare.png",
+      "title": "Rutina Skincare",
+      "subtitle": "Armá tu rutina de cuidado facial paso a paso.",
+      "link": "#/catalogo/cuidado-piel"
+    }
+  ],
+  "testimonials": [
+    {
+      "img": "assets/testimonials/t1.jpg",
+      "text": "“Maricarmen me ayudó a elegir el perfume perfecto para mi boda, un asesoramiento súper personalizado.”",
+      "author": "@valedelrio"
+    },
+    {
+      "img": "assets/testimonials/t2.jpg",
+      "text": "“Pedí por WhatsApp y en dos días ya tenía mi kit de skincare en la puerta. Recomendadísima.”",
+      "author": "@nachogimenez"
+    }
+  ]
+}

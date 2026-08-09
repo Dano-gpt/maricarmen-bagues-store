@@ -1,0 +1,43 @@
+{
+  "categories": [
+    { "slug": "fragancias",    "name": "Fragancias",         "accent": "var(--gold-500)", "tint": "var(--gold-100)" },
+    { "slug": "cuidado-piel",  "name": "Cuidado de la Piel", "accent": "var(--teal-500)", "tint": "var(--teal-100)" },
+    { "slug": "aromatizantes", "name": "Aromatizantes",      "accent": "var(--navy-400)", "tint": "var(--gray-100)" },
+    { "slug": "maquillaje",    "name": "Maquillaje",         "accent": "var(--pink-500)", "tint": "var(--pink-100)" },
+    { "slug": "bienestar",     "name": "Bienestar",          "accent": "var(--navy-400)", "tint": "var(--gray-100)" },
+    { "slug": "cuidado-pelo",  "name": "Cuidado del Pelo",   "accent": "var(--gray-700)", "tint": "var(--gray-100)" },
+    { "slug": "bebes-ninos",   "name": "Bebés & Niños",      "accent": "var(--teal-500)", "tint": "var(--teal-100)" }
+  ],
+  "products": [
+    {
+      "id": "brescia", "name": "Brescia Crystalline", "family": "Fragancia", "category": "fragancias", "genero": "Mujer",
+      "price": 45999, "compareAt": 52999, "percent": 13, "image": "assets/products/brescia.png",
+      "notes": "Bergamota, jazmín, ámbar",
+      "desc": "Eau de parfum floral-amaderado de la línea premium Brescia, para quien busca elegancia atemporal."
+    },
+    {
+      "id": "zayed", "name": "Zayed", "family": "Fragancia", "category": "fragancias", "genero": "Hombre",
+      "price": 38999, "compareAt": null, "percent": 0, "image": "assets/products/zayed.png",
+      "notes": "Oud, azafrán, cuero",
+      "desc": "Fragancia árabe intensa y especiada, ideal para el día a día y ocasiones especiales."
+    },
+    {
+      "id": "mykonos", "name": "Mykonos", "family": "Fragancia", "category": "fragancias", "genero": "Unisex",
+      "price": 32999, "compareAt": 39999, "percent": 18, "image": "assets/products/mykonos.png",
+      "notes": "Cítricos, sal marina, almizcle",
+      "desc": "Fresca y luminosa, inspirada en el verano mediterráneo."
+    },
+    {
+      "id": "skincare-kit", "name": "Kit Rutina Facial", "family": "Skincare", "category": "cuidado-piel", "genero": "Unisex",
+      "price": 28999, "compareAt": null, "percent": 0, "image": "assets/products/skincare-kit.png",
+      "notes": "Aplicar limpiador, sérum y crema en tu rutina diaria AM/PM.",
+      "desc": "Set de 3 pasos para una rutina facial completa: limpieza, tratamiento e hidratación."
+    },
+    {
+      "id": "labial", "name": "Labial Semplice", "family": "Maquillaje", "category": "maquillaje", "genero": "Mujer",
+      "price": 8999, "compareAt": 10999, "percent": 18, "image": "assets/products/labial.png",
+      "notes": "Aplicar directo sobre el labio, retocar durante el día.",
+      "desc": "Color intenso de larga duración con acabado satinado."
+    }
+  ]
+}

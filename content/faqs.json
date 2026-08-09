@@ -1,0 +1,20 @@
+{
+  "faqs": [
+    {
+      "q": "¿Los productos son originales?",
+      "a": "Sí, todos los productos son 100% originales Bagués, adquiridos a través de la red oficial de distribución de la marca."
+    },
+    {
+      "q": "¿Cuáles son los medios de pago?",
+      "a": "Transferencia bancaria, link de Mercado Pago (con cuotas sin interés) y efectivo contra entrega en zonas de cobertura."
+    },
+    {
+      "q": "¿Hacen envíos a todo el país?",
+      "a": "[COMPLETAR: zonas de envío y costos exactos.]"
+    },
+    {
+      "q": "¿Puedo cambiar un producto?",
+      "a": "Sí, contás con 10 días desde la recepción para gestionar un cambio, siempre que el producto esté sin uso y en su empaque original."
+    }
+  ]
+}
