@@ -60,7 +60,8 @@
 
   function startApp() {
     // ds.js define los componentes, app.js el ruteo/carrito. Orden importa.
-    return loadScript('js/ds.js').then(function () { return loadScript('js/app.js'); });
+    var v = '?v=' + Date.now();
+    return loadScript('js/ds.js' + v).then(function () { return loadScript('js/app.js' + v); });
   }
 
   Promise.all([
