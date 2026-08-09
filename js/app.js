@@ -715,7 +715,8 @@
       '<div class="site-footer__col"><p class="site-footer__title">Legal</p>' +
         '<div style="display:flex;flex-direction:column;gap:8px">' +
           '<a href="#/legales">Términos y condiciones</a><a href="#/legales">Envíos y cambios</a>' +
-          '<a href="#/legales">Privacidad</a><a href="#/legales">Preguntas frecuentes</a></div>' +
+          '<a href="#/legales">Privacidad</a><a href="#/legales">Preguntas frecuentes</a>' +
+          '<a href="admin/" style="opacity:.6" title="Acceso restringido">Gestor de contenido</a></div>' +
         '<img src="assets/logos/payment-badges.png" alt="Medios de pago aceptados" style="height:22px;margin-top:16px;filter:brightness(0) invert(1);opacity:.8" loading="lazy">' +
       '</div></div>' +
       '<p class="site-footer__legal">© ' + new Date().getFullYear() + ' ' + esc(r.nombre) + ' — Bagués by ' + esc(r.nombre) + '. Todos los precios en pesos argentinos.</p>' +
