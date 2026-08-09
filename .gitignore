@@ -1,0 +1,12 @@
+# Builds generados localmente (no son fuente, se regeneran con build-singlefile.py)
+bagues-portal-standalone.html
+bagues-portal-preview.html
+
+# Node / herramientas locales de test (jsdom se instala aparte para correr test/smoke.test.js)
+node_modules/
+package-lock.json
+npm-debug.log
+
+# Sistema
+.DS_Store
+Thumbs.db
