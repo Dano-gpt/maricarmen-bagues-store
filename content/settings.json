@@ -17,9 +17,12 @@
   "commerce": {
     "envioGratisDesde": 40000,
     "costoEnvio": 3500,
-    "moneda": "$",
+    "moneda": "$ ",
     "cupones": [
-      { "codigo": "BAGUES10", "descuento": 0.10 }
+      {
+        "codigo": "BAGUES10",
+        "descuento": 0.1
+      }
     ],
     "promos": [
       "3 cuotas sin interés desde $30.000",
