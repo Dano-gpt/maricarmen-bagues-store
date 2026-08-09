@@ -17,7 +17,7 @@
   "commerce": {
     "envioGratisDesde": 40000,
     "costoEnvio": 3500,
-    "moneda": "$ ",
+    "moneda": "$",
     "cupones": [
       {
         "codigo": "BAGUES10",
