@@ -1,13 +1,396 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex">
-  <title>Panel de administración — Bagués by Maricarmen</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Panel de administraci&oacute;n - Bagu&eacute;s by Maricarmen</title>
+<style>
+  :root{--pink:#F00056;--navy:#1F3A5C;--ink:#242424;--muted:#6b6b6b;--line:#e6e6e6;--bg:#f6f6f7}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  header h1{font-size:16px;margin:0;letter-spacing:.02em}
+  header .sp{font-style:italic;color:var(--navy)}
+  .wrap{max-width:900px;margin:0 auto;padding:20px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:18px}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input[type=text],input[type=password],input[type=number],textarea,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fff}
+  textarea{min-height:70px;resize:vertical}
+  button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid transparent;padding:10px 16px;font-weight:600}
+  .btn-primary{background:var(--pink);color:#fff}
+  .btn-ghost{background:#fff;border-color:var(--line);color:var(--ink)}
+  .btn-sm{padding:6px 10px;font-size:13px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .tab{padding:8px 14px;border:1px solid var(--line);border-radius:20px;background:#fff;font-size:14px}
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .item{border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px;background:#fafafa}
+  .item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .muted{color:var(--muted);font-size:13px}
+  .center{max-width:420px;margin:60px auto;text-align:left}
+  .msg{padding:10px 12px;border-radius:6px;margin:10px 0;font-size:14px;display:none}
+  .msg.ok{background:#e7f7ec;color:#1a7f43;display:block}
+  .msg.err{background:#fdeaea;color:#b3261e;display:block}
+  .msg.info{background:#eef2f8;color:var(--navy);display:block}
+  .thumb{height:46px;border-radius:4px;border:1px solid var(--line);vertical-align:middle;margin-left:8px}
+  .imgrow{display:flex;gap:8px;align-items:center}
+  .imgrow input{flex:1}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  a{color:var(--pink)}
+  code{background:#f0f0f0;padding:2px 5px;border-radius:4px}
+</style>
 </head>
 <body>
-  <!-- Decap CMS: panel de administración que guarda directo al repositorio de GitHub -->
-  <script src="https://unpkg.com/decap-cms@^3.3.3/dist/decap-cms.js"></script>
+<header>
+  <h1>Panel Bagu&eacute;s <span class="sp">&middot; by Maricarmen</span></h1>
+  <div id="hdr-actions"></div>
+</header>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+  'use strict';
+  var REPO='Dano-gpt/maricarmen-bagues-store', BRANCH='main';
+  var API='https://api.github.com/repos/'+REPO+'/contents/';
+  var PASS_HASH='b675ff39fa85b8b3418a68322bc6ed365fe14eb20ea6f741d64a0e98f1ee252e';
+  var TOKEN_KEY='bagues_gh_token';
+  var FILES={
+    settings:{path:'content/settings.json'},
+    home:{path:'content/home.json'},
+    catalog:{path:'content/catalog.json'},
+    faqs:{path:'content/faqs.json'}
+  };
+  var app=document.getElementById('app');
+  var hdr=document.getElementById('hdr-actions');
+  var tab='settings';
+
+  /* ---------- utilidades ---------- */
+  function el(h){var d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild;}
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function b64enc(str){return btoa(unescape(encodeURIComponent(str)));}
+  function b64dec(b){return decodeURIComponent(escape(atob(b.replace(/\s/g,''))));}
+  function token(){return localStorage.getItem(TOKEN_KEY)||'';}
+  async function sha256hex(s){var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');}
+  function msg(t,cls){var m=document.getElementById('msg');if(!m)return;m.className='msg '+cls;m.innerHTML=t;}
+
+  function ghHeaders(){return {'Authorization':'token '+token(),'Accept':'application/vnd.github+json'};}
+
+  async function ghGet(path){
+    var r=await fetch(API+path+'?ref='+BRANCH,{headers:ghHeaders(),cache:'no-store'});
+    if(r.status===404) return {sha:null,data:null};
+    if(!r.ok) throw new Error('Lectura '+path+': '+r.status);
+    var j=await r.json();
+    return {sha:j.sha, data:JSON.parse(b64dec(j.content))};
+  }
+  async function ghPut(path,contentStr,sha,message){
+    var body={message:message||('CMS: actualizar '+path),content:b64enc(contentStr),branch:BRANCH};
+    if(sha) body.sha=sha;
+    var r=await fetch(API+path,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+    if(!r.ok){var e=await r.text();throw new Error('Guardado '+path+': '+r.status+' '+e);}
+    var j=await r.json();return j.content.sha;
+  }
+  async function ghPutBinary(path,base64,message){
+    // para imagenes: intenta obtener sha previo (si existe) y sube
+    var sha=null;
+    try{var g=await fetch(API+path+'?ref='+BRANCH,{headers:ghHeaders()});if(g.ok){sha=(await g.json()).sha;}}catch(e){}
+    var body={message:message||('CMS: subir '+path),content:base64,branch:BRANCH};
+    if(sha) body.sha=sha;
+    var r=await fetch(API+path,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+    if(!r.ok){var e=await r.text();throw new Error('Imagen '+path+': '+r.status+' '+e);}
+    return true;
+  }
+
+  /* ---------- login ---------- */
+  function renderLogin(){
+    hdr.innerHTML='';
+    app.innerHTML='';
+    var c=el('<div class="card center">\
+      <h2 style="margin-top:0">Ingresar</h2>\
+      <div id="msg" class="msg"></div>\
+      <label>Usuario</label><input type="text" id="u" autocomplete="username">\
+      <label>Contrase&ntilde;a</label><input type="password" id="p" autocomplete="current-password">\
+      <div class="bar"><button class="btn-primary" id="go">Entrar</button></div>\
+    </div>');
+    app.appendChild(c);
+    document.getElementById('go').onclick=doLogin;
+    document.getElementById('p').addEventListener('keydown',function(e){if(e.key==="Enter")doLogin();});
+  }
+  async function doLogin(){
+    var u=document.getElementById('u').value.trim();
+    var p=document.getElementById('p').value;
+    var h=await sha256hex(p);
+    if(u==='Gestor' && h===PASS_HASH){
+      sessionStorage.setItem('bagues_admin_ok','1');
+      routeAfterLogin();
+    }else{
+      msg('Usuario o contrase&ntilde;a incorrectos.','err');
+    }
+  }
+
+  /* ---------- token ---------- */
+  function renderToken(){
+    hdr.innerHTML='';
+    app.innerHTML='';
+    var tokenUrl='https://github.com/settings/personal-access-tokens/new';
+    var c=el('<div class="card center" style="max-width:560px">\
+      <h2 style="margin-top:0">Conectar con GitHub (una sola vez)</h2>\
+      <div id="msg" class="msg"></div>\
+      <p class="muted">Para poder <b>guardar</b> los cambios en el sitio, peg&aacute; un <b>token de acceso</b> de GitHub. Se guarda solo en este navegador; no viaja a ning&uacute;n otro lado.</p>\
+      <ol class="muted" style="line-height:1.7">\
+        <li>Abr&iacute; <a href="'+tokenUrl+'" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>\
+        <li>En <b>Repository access</b> eleg&iacute; <b>Only select repositories</b> &rarr; <code>maricarmen-bagues-store</code>.</li>\
+        <li>En <b>Permissions &rarr; Repository permissions</b>, pon&eacute; <b>Contents: Read and write</b>.</li>\
+        <li>Click <b>Generate token</b>, copialo y pegalo ac&aacute; abajo.</li>\
+      </ol>\
+      <label>Token de GitHub</label><input type="password" id="tok" placeholder="github_pat_...">\
+      <div class="bar"><button class="btn-primary" id="savetok">Guardar y continuar</button></div>\
+    </div>');
+    app.appendChild(c);
+    document.getElementById('savetok').onclick=async function(){
+      var t=document.getElementById('tok').value.trim();
+      if(!t){msg('Peg&aacute; el token.','err');return;}
+      localStorage.setItem(TOKEN_KEY,t);
+      msg('Verificando token...','info');
+      try{
+        var r=await fetch('https://api.github.com/repos/'+REPO,{headers:ghHeaders()});
+        if(!r.ok) throw new Error('El token no tiene acceso al repositorio ('+r.status+').');
+        routeAfterLogin();
+      }catch(e){localStorage.removeItem(TOKEN_KEY);msg(e.message,'err');}
+    };
+  }
+
+  /* ---------- carga de contenido ---------- */
+  async function loadAll(){
+    for(var k in FILES){
+      var g=await ghGet(FILES[k].path);
+      FILES[k].sha=g.sha; FILES[k].data=g.data;
+    }
+  }
+
+  /* ---------- helpers de formulario ---------- */
+  function field(labelTxt,value,onInput,type){
+    var id='f'+Math.random().toString(36).slice(2);
+    var input;
+    if(type==='textarea'){input=el('<textarea id="'+id+'"></textarea>');input.value=value==null?'':value;}
+    else if(type==='number'){input=el('<input type="number" id="'+id+'">');input.value=(value==null?'':value);}
+    else{input=el('<input type="text" id="'+id+'">');input.value=value==null?'':value;}
+    input.addEventListener('input',function(){onInput(type==='number'?(input.value===''?null:Number(input.value)):input.value);});
+    var wrap=el('<div><label>'+labelTxt+'</label></div>');
+    wrap.appendChild(input);
+    return wrap;
+  }
+  function imageField(labelTxt,value,onInput){
+    var wrap=el('<div><label>'+labelTxt+'</label></div>');
+    var row=el('<div class="imgrow"></div>');
+    var input=el('<input type="text" placeholder="assets/...">');input.value=value==null?'':value;
+    input.addEventListener('input',function(){onInput(input.value);refreshThumb();});
+    var up=el('<button class="btn-ghost btn-sm">Subir</button>');
+    var file=el('<input type="file" accept="image/*" style="display:none">');
+    var thumb=el('<img class="thumb" style="display:none">');
+    function refreshThumb(){var v=input.value;if(v){thumb.style.display='inline-block';thumb.src=(v.indexOf('http')===0?v:'../'+v);}else{thumb.style.display='none';}}
+    up.onclick=function(){file.click();};
+    file.onchange=function(){
+      var f=file.files[0];if(!f)return;
+      var rd=new FileReader();
+      rd.onload=async function(){
+        var b64=rd.result.split(',')[1];
+        var name=f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+        var path='assets/uploads/'+Date.now()+'_'+name;
+        up.textContent='Subiendo...';up.disabled=true;
+        try{
+          await ghPutBinary(path,b64,'CMS: subir imagen '+name);
+          input.value=path;onInput(path);refreshThumb();
+          up.textContent='Subir';up.disabled=false;
+        }catch(e){alert(e.message);up.textContent='Subir';up.disabled=false;}
+      };
+      rd.readAsDataURL(f);
+    };
+    row.appendChild(input);row.appendChild(up);row.appendChild(file);row.appendChild(thumb);
+    wrap.appendChild(row);refreshThumb();
+    return wrap;
+  }
+  function objList(container,list,defs,addLabel){
+    function draw(){
+      container.innerHTML='';
+      list.forEach(function(obj,idx){
+        var item=el('<div class="item"></div>');
+        var head=el('<div class="item-head"><b class="muted">#'+(idx+1)+'</b></div>');
+        var del=el('<button class="btn-ghost btn-sm">Eliminar</button>');
+        del.onclick=function(){list.splice(idx,1);draw();};
+        head.appendChild(del);item.appendChild(head);
+        defs.forEach(function(d){
+          var f;
+          if(d.type==='image') f=imageField(d.label,obj[d.name],function(v){obj[d.name]=v;});
+          else f=field(d.label,obj[d.name],function(v){obj[d.name]=v;},d.type);
+          item.appendChild(f);
+        });
+        container.appendChild(item);
+      });
+      var add=el('<button class="btn-ghost btn-sm">+ '+addLabel+'</button>');
+      add.onclick=function(){var o={};defs.forEach(function(d){o[d.name]=d.type==='number'?0:'';});list.push(o);draw();};
+      container.appendChild(add);
+    }
+    draw();
+  }
+  function strList(container,arr,addLabel){
+    function draw(){
+      container.innerHTML='';
+      arr.forEach(function(v,idx){
+        var item=el('<div class="imgrow" style="margin-bottom:8px"></div>');
+        var inp=el('<input type="text">');inp.value=v;
+        inp.addEventListener('input',function(){arr[idx]=inp.value;});
+        var del=el('<button class="btn-ghost btn-sm">x</button>');
+        del.onclick=function(){arr.splice(idx,1);draw();};
+        item.appendChild(inp);item.appendChild(del);container.appendChild(item);
+      });
+      var add=el('<button class="btn-ghost btn-sm">+ '+addLabel+'</button>');
+      add.onclick=function(){arr.push('');draw();};
+      container.appendChild(add);
+    }
+    draw();
+  }
+
+  /* ---------- editores ---------- */
+  function editSettings(root){
+    var d=FILES.settings.data, r=d.reseller, c=d.commerce, lg=d.legal, fo=d.forms, an=d.analytics;
+    var box=el('<div class="card"><h3>Revendedora / contacto</h3></div>');
+    box.appendChild(field('Nombre',r.nombre,function(v){r.nombre=v;}));
+    box.appendChild(field('Rol',r.rol,function(v){r.rol=v;}));
+    box.appendChild(field('WhatsApp (internacional, sin +)',r.whatsapp,function(v){r.whatsapp=v;}));
+    box.appendChild(field('Instagram (usuario)',r.instagram,function(v){r.instagram=v;}));
+    box.appendChild(field('Email',r.email,function(v){r.email=v;}));
+    box.appendChild(field('Zona de cobertura',r.zona,function(v){r.zona=v;}));
+    box.appendChild(field('LinkedIn (URL)',r.linkedin,function(v){r.linkedin=v;}));
+    box.appendChild(imageField('Foto de Maricarmen',r.foto,function(v){r.foto=v;}));
+    box.appendChild(field('Bio corta',r.bioCorta,function(v){r.bioCorta=v;},'textarea'));
+    var blWrap=el('<div><label>Bio larga (p&aacute;rrafos)</label><div></div></div>');
+    strList(blWrap.lastChild,r.bioLarga,'agregar p&aacute;rrafo');box.appendChild(blWrap);
+    root.appendChild(box);
+
+    var box2=el('<div class="card"><h3>Comercio</h3></div>');
+    box2.appendChild(field('Env&iacute;o gratis desde ($)',c.envioGratisDesde,function(v){c.envioGratisDesde=v;},'number'));
+    box2.appendChild(field('Costo de env&iacute;o ($)',c.costoEnvio,function(v){c.costoEnvio=v;},'number'));
+    box2.appendChild(field('Moneda (s&iacute;mbolo)',c.moneda,function(v){c.moneda=v;}));
+    var cupWrap=el('<div><label>Cupones</label><div></div></div>');
+    objList(cupWrap.lastChild,c.cupones,[{name:'codigo',label:'C&oacute;digo',type:'text'},{name:'descuento',label:'Descuento (0.10 = 10%)',type:'number'}],'cup&oacute;n');
+    box2.appendChild(cupWrap);
+    var promoWrap=el('<div><label>Promos (barra superior)</label><div></div></div>');
+    strList(promoWrap.lastChild,c.promos,'agregar promo');box2.appendChild(promoWrap);
+    root.appendChild(box2);
+
+    var box3=el('<div class="card"><h3>Legal, formularios y analytics</h3></div>');
+    box3.appendChild(field('Texto del aviso legal',lg.disclaimer,function(v){lg.disclaimer=v;},'textarea'));
+    var selWrap=el('<div><label>Modo de formularios</label></div>');
+    var sel=el('<select><option value="whatsapp">whatsapp</option><option value="email">email</option><option value="endpoint">endpoint</option></select>');
+    sel.value=fo.modo;sel.onchange=function(){fo.modo=sel.value;};selWrap.appendChild(sel);box3.appendChild(selWrap);
+    box3.appendChild(field('Endpoint (si modo=endpoint)',fo.endpoint,function(v){fo.endpoint=v;}));
+    box3.appendChild(field('Google Analytics ID (G-...)',an.gaMeasurementId,function(v){an.gaMeasurementId=v;}));
+    box3.appendChild(field('Meta Pixel ID',an.metaPixelId,function(v){an.metaPixelId=v;}));
+    root.appendChild(box3);
+  }
+  function editHome(root){
+    var d=FILES.home.data;
+    var b1=el('<div class="card"><h3>Slides del hero</h3><div></div></div>');
+    objList(b1.lastChild,d.hero,[{name:'image',label:'Imagen',type:'image'},{name:'title',label:'T&iacute;tulo',type:'text'},{name:'subtitle',label:'Subt&iacute;tulo',type:'text'},{name:'link',label:'Link (ej #/producto/brescia)',type:'text'}],'slide');
+    root.appendChild(b1);
+    var b2=el('<div class="card"><h3>Testimonios</h3><div></div></div>');
+    objList(b2.lastChild,d.testimonials,[{name:'img',label:'Foto',type:'image'},{name:'text',label:'Texto',type:'textarea'},{name:'author',label:'Autor',type:'text'}],'testimonio');
+    root.appendChild(b2);
+  }
+  function editCatalog(root){
+    var d=FILES.catalog.data;
+    var b1=el('<div class="card"><h3>Categor&iacute;as</h3><div></div></div>');
+    objList(b1.lastChild,d.categories,[{name:'slug',label:'Slug',type:'text'},{name:'name',label:'Nombre',type:'text'},{name:'accent',label:'Color acento (var CSS)',type:'text'},{name:'tint',label:'Color fondo (var CSS)',type:'text'}],'categor&iacute;a');
+    root.appendChild(b1);
+    var b2=el('<div class="card"><h3>Productos</h3><div></div></div>');
+    objList(b2.lastChild,d.products,[
+      {name:'id',label:'ID (&uacute;nico, sin espacios)',type:'text'},
+      {name:'name',label:'Nombre',type:'text'},
+      {name:'family',label:'Familia',type:'text'},
+      {name:'category',label:'Categor&iacute;a (slug)',type:'text'},
+      {name:'genero',label:'G&eacute;nero (Mujer/Hombre/Unisex)',type:'text'},
+      {name:'price',label:'Precio ($)',type:'number'},
+      {name:'compareAt',label:'Precio anterior ($, opcional)',type:'number'},
+      {name:'percent',label:'% OFF',type:'number'},
+      {name:'image',label:'Imagen',type:'image'},
+      {name:'notes',label:'Notas',type:'textarea'},
+      {name:'desc',label:'Descripci&oacute;n',type:'textarea'}
+    ],'producto');
+    root.appendChild(b2);
+  }
+  function editFaqs(root){
+    var d=FILES.faqs.data;
+    var b=el('<div class="card"><h3>Preguntas frecuentes</h3><div></div></div>');
+    objList(b.lastChild,d.faqs,[{name:'q',label:'Pregunta',type:'text'},{name:'a',label:'Respuesta',type:'textarea'}],'pregunta');
+    root.appendChild(b);
+  }
+
+  /* ---------- main ---------- */
+  function renderMain(){
+    hdr.innerHTML='';
+    var logout=el('<button class="btn-ghost btn-sm">Salir</button>');
+    logout.onclick=function(){sessionStorage.removeItem('bagues_admin_ok');renderLogin();};
+    hdr.appendChild(logout);
+
+    app.innerHTML='';
+    var tabs=el('<div class="tabs">\
+      <button class="tab" data-t="settings">Configuraci&oacute;n</button>\
+      <button class="tab" data-t="home">Inicio</button>\
+      <button class="tab" data-t="catalog">Cat&aacute;logo</button>\
+      <button class="tab" data-t="faqs">FAQs</button></div>');
+    app.appendChild(tabs);
+    var m=el('<div id="msg" class="msg"></div>');app.appendChild(m);
+    var root=el('<div></div>');app.appendChild(root);
+    var bar=el('<div class="bar"><button class="btn-primary" id="save">Guardar y publicar</button>\
+      <span class="muted">Los cambios se publican en el sitio en ~1 minuto.</span></div>');
+    app.appendChild(bar);
+
+    function paint(){
+      Array.prototype.forEach.call(tabs.querySelectorAll('.tab'),function(b){b.classList.toggle('active',b.getAttribute('data-t')===tab);});
+      root.innerHTML='';
+      if(tab==='settings')editSettings(root);
+      else if(tab==='home')editHome(root);
+      else if(tab==='catalog')editCatalog(root);
+      else editFaqs(root);
+    }
+    Array.prototype.forEach.call(tabs.querySelectorAll('.tab'),function(b){b.onclick=function(){tab=b.getAttribute('data-t');paint();};});
+    document.getElementById('save').onclick=saveAll;
+    paint();
+  }
+
+  async function saveAll(){
+    var btn=document.getElementById('save');btn.disabled=true;btn.textContent='Guardando...';
+    msg('Guardando cambios...','info');
+    try{
+      for(var k in FILES){
+        var json=JSON.stringify(FILES[k].data,null,2)+'\n';
+        var newSha=await ghPut(FILES[k].path,json,FILES[k].sha,'CMS: actualizar '+FILES[k].path);
+        FILES[k].sha=newSha;
+      }
+      msg('Cambios guardados. El sitio se actualiza en ~1 minuto.','ok');
+    }catch(e){msg(e.message,'err');}
+    btn.disabled=false;btn.textContent='Guardar y publicar';
+  }
+
+  async function routeAfterLogin(){
+    if(!token()){renderToken();return;}
+    app.innerHTML='<div class="card">Cargando contenido...</div>';
+    try{await loadAll();renderMain();}
+    catch(e){
+      if(String(e.message).indexOf('401')>=0||String(e.message).indexOf('403')>=0){
+        localStorage.removeItem(TOKEN_KEY);renderToken();
+        setTimeout(function(){msg('El token no es v&aacute;lido o expir&oacute;. Gener&aacute; uno nuevo.','err');},50);
+      }else{
+        app.innerHTML='<div class="card"><div class="msg err" style="display:block">'+esc(e.message)+'</div></div>';
+      }
+    }
+  }
+
+  /* ---------- init ---------- */
+  if(sessionStorage.getItem('bagues_admin_ok')==='1') routeAfterLogin();
+  else renderLogin();
+})();
+</script>
 </body>
 </html>
